@@ -24,9 +24,10 @@ public class RedisCheckLockTest {
     @Test
     public void test() {
         ExecutorService executorService = Executors.newFixedThreadPool(100);
-        for (int i = 1; i <= 100; i++) {
+        // 模拟100个线程并发获取锁
+        for (int i = 0; i < 100; i++) {
             executorService.submit(() -> {
-                this.doBussiness(Thread.currentThread().getName());
+                doBussiness(Thread.currentThread().getName());
             });
         }
         // main thread block here
@@ -38,7 +39,7 @@ public class RedisCheckLockTest {
     }
 
     private void doBussiness(String requestId) {
-        String key = "REDIS:CHECK:LOCK:" + UUID.randomUUID().toString();
+        String key = "REDIS:CHECK:LOCK:test";
         int expires = 10000;
         while (true) {
             Boolean aBoolean = redisCheckLock.tryLock(key, requestId, expires);
@@ -53,8 +54,8 @@ public class RedisCheckLockTest {
                 }
             }
         }
-
         logger.info("Thead[{}]获得锁,key:{}", requestId, key);
+
         // 模拟处理业务时间
         try {
             Thread.sleep(2000);

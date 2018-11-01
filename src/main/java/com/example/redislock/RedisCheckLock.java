@@ -1,6 +1,7 @@
 package com.example.redislock;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,7 @@ public class RedisCheckLock {
      * @return
      */
     public Boolean tryLock(String lockKey, String clientId, long seconds) {
-        return redisTemplate.execute((RedisCallback<Boolean>) redisConnection -> {
+        return redisTemplate.execute((RedisConnection redisConnection) -> {
             Jedis jedis = (Jedis) redisConnection.getNativeConnection();
             String result = jedis.set(lockKey, clientId, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, seconds);
             if (LOCK_SUCCESS.equals(result)) {
@@ -48,7 +49,7 @@ public class RedisCheckLock {
      * @return
      */
     public Boolean releaseLock(String lockKey, String clientId) {
-        return redisTemplate.execute((RedisCallback<Boolean>) redisConnection -> {
+        return redisTemplate.execute((RedisConnection redisConnection) -> {
             Jedis jedis = (Jedis) redisConnection.getNativeConnection();
             Object result = jedis.eval(RELEASE_LOCK_SCRIPT, Collections.singletonList(lockKey), Collections.singletonList(clientId));
             if (RELEASE_SUCCESS.equals(result)) {
